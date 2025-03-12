@@ -26,6 +26,7 @@ export default [
     rules: {
       "no-extra-parens": "off",
       "no-unused-vars": "off",
+      
       ...js.configs.recommended.rules,
       ...react.configs.recommended.rules,
       ...react.configs['jsx-runtime'].rules,

@@ -1,0 +1,9 @@
+{
+  "signUp": "Kaydol",
+  "username": "Kullanici Adi",
+  "email": "E-posta",
+  "password": "Sifre",
+  "passwordRepeat": "Sifre Tekrari",
+  "passwordMismatch": "Sifreler eslesmiyor",
+  "generalError": "Bir hata oluştu.Lütfen tekrar deneyin"
+}

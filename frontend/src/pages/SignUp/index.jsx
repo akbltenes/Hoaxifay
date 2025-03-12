@@ -1,5 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { signUp } from "./api";
+import { Input } from "./components/Input";
+import { useTranslation } from "react-i18next";
+import { LanguageSelector } from "../../shared/components/LanguageSelector";
 
 export function SignUp() {
   const [username, setUsername] = useState();
@@ -10,9 +13,25 @@ export function SignUp() {
   const [successMessage, setSuccessMessage] = useState();
   const [errors, setErrors] = useState({});
   const [generalError, setGeneralError] = useState();
+  const { t } = useTranslation();
   useEffect(() => {
-    setErrors({});
+    setErrors(function (lastErrors) {
+      return { ...lastErrors, username: undefined };
+    });
   }, [username]);
+
+  useEffect(() => {
+    setErrors(function (lastErrors) {
+      return { ...lastErrors, email: undefined };
+    });
+  }, [email]);
+
+  useEffect(() => {
+    setErrors(function (lastErrors) {
+      return { ...lastErrors, password: undefined };
+    });
+  }, [password]);
+
   const onSubmit = async (event) => {
     event.preventDefault();
     setSuccessMessage();
@@ -23,6 +42,7 @@ export function SignUp() {
         username,
         email,
         password,
+        passwordRepeat,
       });
       setSuccessMessage(response.data.message);
     } catch (axiosError) {
@@ -32,107 +52,94 @@ export function SignUp() {
       ) {
         setErrors(axiosError.response.data.validationErrors);
       } else {
-        setGeneralError("Bir hata oluştu.Lütfen tekrar deneyin");
+        setGeneralError(t("generalError"));
       }
     } finally {
       setApiProgress(false);
     }
   };
 
-  return (
-    <>
-      <div className="container">
-        <div className="col-lg-6 offset-lg-3 col-sm-8 offset-sm-2">
-          <form className="card " onSubmit={onSubmit}>
-            <div
-              className="text-center card-header bg-dark text-white "
-              style={{ width: "100%" }}
-            >
-              <h1>Sign Up</h1>
-            </div>
-            <div className="card-body ">
-              <div className="mb-2">
-                <label htmlFor="username" className="form-label ">
-                  Username:{" "}
-                </label>
-                <input
-                  id="username"
-                  className={
-                    errors.username
-                      ? "form-control is-invalid "
-                      : "form-control"
-                  }
-                  value={username}
-                  onChange={(event) => {
-                    setUsername(event.target.value);
-                  }}
-                />
-              </div>
-              <div className="invalid-feedback">{errors.username}</div>
-              <div className="mb-2">
-                <label htmlFor="email" className="form-label">
-                  E-mail:{" "}
-                </label>
-                <input
-                  id="email"
-                  className="form-control"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
-              </div>
-              <div className="mb-2">
-                <label htmlFor="password" className="form-label ">
-                  Password:{" "}
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  className="form-control"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-              </div>
-              <div className="mb-2">
-                <label htmlFor="passwordRepeat" className="form-label ">
-                  Password Repeat:{" "}
-                </label>
-                <input
-                  id="passwordRepeat"
-                  type="password"
-                  className="form-control"
-                  onChange={(event) => setPasswordRepeat(event.target.value)}
-                />
-              </div>
+  const passwordRepeatError = useMemo(() => {
+    if (password && password !== passwordRepeat) {
+      return t("passwordMismatch");
+    }
+    return "";
+  }, [password, passwordRepeat]);
 
-              {/*backende gonder*/}
-              {successMessage && (
-                <div className="alert alert-success">{successMessage}</div>
-              )}
-              {generalError && (
-                <div className="alert alert-danger">{generalError}</div>
-              )}
-              <div className="text-center">
-                <button
-                  className="btn btn-success"
-                  type="submit"
-                  disabled={apiProgress || password !== passwordRepeat}
-                >
-                  {apiProgress && (
-                    <span
-                      className="spinner-border spinner-border-sm"
-                      aria-hidden="true"
-                    ></span>
-                  )}
-                  <span className="visually-hidden" role="status">
-                    Loading...
-                  </span>
-                  Sign Up
-                </button>
-              </div>
+  return (
+    <div className="container">
+      <div className="col-lg-6 offset-lg-3 col-sm-8 offset-sm-2">
+        <form className="card" onSubmit={onSubmit}>
+          <div
+            className="text-center card-header bg-dark text-white "
+            style={{ width: "100%" }}
+          >
+            <h1>{t("signUp")}</h1>
+          </div>
+          <div className="card-body ">
+            <Input
+              id="username"
+              label={t("username")}
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              error={errors.username}
+            />
+
+            <Input
+              id="email"
+              label={t("email")}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              error={errors.email}
+            />
+
+            <Input
+              id="password"
+              label={t("password")}
+              value={password}
+              type="password"
+              onChange={(event) => setPassword(event.target.value)}
+              error={errors.password}
+            />
+
+            <Input
+              id="passwordRepeat"
+              label={t("passwordRepeat")}
+              type="password"
+              value={passwordRepeat}
+              onChange={(event) => setPasswordRepeat(event.target.value)}
+              error={passwordRepeatError}
+            />
+
+            {/*backende gonder*/}
+            {successMessage && (
+              <div className="alert alert-success">{successMessage}</div>
+            )}
+            {generalError && (
+              <div className="alert alert-danger">{generalError}</div>
+            )}
+            <div className="text-center">
+              <button
+                className="btn btn-success"
+                type="submit"
+                disabled={apiProgress || password !== passwordRepeat}
+              >
+                {apiProgress && (
+                  <span
+                    className="spinner-border spinner-border-sm"
+                    aria-hidden="true"
+                  ></span>
+                )}
+                <span className="visually-hidden" role="status">
+                  Loading...
+                </span>
+                Sign Up
+              </button>
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
+        <LanguageSelector />
       </div>
-    </>
+    </div>
   );
 }
